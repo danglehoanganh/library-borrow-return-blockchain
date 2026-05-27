@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BlockLibrary — Hệ Thống Thư Viện Mượn/Trả Sách nền tảng Blockchain</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+<script src="LibraryABI.js"></script>
+<script src="app.js"></script>
+</head>
+<body>
+
+
+<!-- ALERT BOX -->
+<div id="alert-box"></div>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <div>
+      <div class="logo-text">BlockLibrary</div>
+      <div class="logo-sub">Hệ thống thư viện blockchain</div>
+    </div>
+  </div>
+  <div id="wallet-panel">
+    <div id="wallet-info">
+      <span id="network-badge">Ganache</span>
+      <span id="admin-badge">⭐ Admin</span>
+      <span id="wallet-addr">0x0000...0000</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <div style="width:260px">
+        <input type="text" id="rpc-url-input" placeholder="RPC URL (VD: http://127.0.0.1:7545)" style="width:100%;background:rgba(0,0,0,0);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:11px;outline:none" />
+      </div>
+      <div style="width:260px">
+        <input type="password" id="private-key-input" placeholder="Private Key (copy từ Ganache)" style="width:100%;background:rgba(0,0,0,0);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:11px;outline:none" />
+      </div>
+      <button id="connect-btn" onclick="connectWallet()">🔗 Kết nối blockchain</button>
+      <button id="logout-btn" class="btn btn-danger" onclick="logout()" style="display:none">🚪 Đăng xuất</button>
+    </div>
+  </div>
+</header>
+
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div id="contract-panel">
+    <label>Contract Address</label>
+    <input type="text" id="contract-address-input" placeholder="0x..." />
+    <button id="set-contract-btn" onclick="setContractAddress()">Kết nối Contract</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Tổng quan</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Sách</div>
+    <button class="nav-item" onclick="showPage('books')">
+      <span class="nav-icon">📖</span> Danh sách sách
+    </button>
+    <button class="nav-item admin-only" onclick="showPage('add-book')" style="display:none">
+      <span class="nav-icon">➕</span> Thêm sách
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Giao dịch</div>
+    <button class="nav-item" onclick="showPage('borrow')">
+      <span class="nav-icon">📤</span> Mượn sách
+    </button>
+    <button class="nav-item" onclick="showPage('return')">
+      <span class="nav-icon">📥</span> Trả sách
+    </button>
+    <button class="nav-item" onclick="showPage('records')">
+      <span class="nav-icon">📋</span> Lịch sử giao dịch
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Thành viên</div>
+    <button class="nav-item" onclick="showPage('register')">
+      <span class="nav-icon">👤</span> Đăng ký thành viên
+    </button>
+    <button class="nav-item admin-only" onclick="showPage('members')" style="display:none">
+      <span class="nav-icon">👥</span> Quản lý thành viên
+    </button>
+  </div>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section">
+    <div class="nav-label">Hệ thống</div>
+    <button class="nav-item" onclick="showPage('tx-log')">
+      <span class="nav-icon">🔗</span> Transaction Log
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div class="page-title">Dashboard <span class="gold-accent">Tổng quan</span></div>
+      <div class="page-subtitle">Thống kê hệ thống mượn trả sách trên blockchain</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <span class="stat-icon">📚</span>
+        <div class="stat-value" id="stat-books">—</div>
+        <div class="stat-label">Tổng số đầu sách</div>
+      </div>
+      <div class="stat-card teal">
+        <span class="stat-icon">📤</span>
+        <div class="stat-value" id="stat-borrowed">—</div>
+        <div class="stat-label">Đang được mượn</div>
+      </div>
+      <div class="stat-card green">
+        <span class="stat-icon">👥</span>
+        <div class="stat-value" id="stat-members">—</div>
+        <div class="stat-label">Thành viên</div>
+      </div>
+      <div class="stat-card red">
+        <span class="stat-icon">⚠️</span>
+        <div class="stat-value" id="stat-overdue">—</div>
+        <div class="stat-label">Quá hạn trả</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Đang mượn gần đây</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">🔄 Làm mới</button>
+        </div>
+        <div class="card-body">
+          <div id="dash-active" class="loading"><div class="spinner"></div>Đang tải...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📚 Sách còn ít nhất</div>
+        </div>
+        <div class="card-body">
+          <div id="dash-low" class="loading"><div class="spinner"></div>Đang tải...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-header">
+        <div class="card-title">🔗 Thông tin Blockchain</div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid form-grid-3">
+          <div><div class="text-xs" style="color:var(--text3);margin-bottom:4px">CONTRACT ADDRESS</div><div class="addr-short" id="info-contract">—</div></div>
+          <div><div class="text-xs" style="color:var(--text3);margin-bottom:4px">ADMIN ADDRESS</div><div class="addr-short" id="info-admin">—</div></div>
+          <div><div class="text-xs" style="color:var(--text3);margin-bottom:4px">NETWORK</div><div class="addr-short" id="info-network">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== BOOKS ========== -->
+  <div id="page-books" class="page">
+    <div class="page-header flex items-center justify-between">
+      <div>
+        <div class="page-title">📚 Danh sách <span class="gold-accent">Sách</span></div>
+        <div class="page-subtitle">Tất cả đầu sách trong thư viện</div>
+      </div>
+      <div class="flex gap-8 items-center">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-books" placeholder="Tìm tên sách, tác giả..." oninput="filterBooks()"/>
+        </div>
+        <button class="btn btn-primary" onclick="loadBooks()">🔄 Làm mới</button>
+      </div>
+    </div>
+    <div id="books-grid" class="book-grid">
+      <div class="loading"><div class="spinner"></div>Đang tải sách...</div>
+    </div>
+  </div>
+
+  <!-- ========== ADD BOOK ========== -->
+  <div id="page-add-book" class="page">
+    <div class="page-header">
+      <div class="page-title">➕ Thêm <span class="gold-accent">Sách mới</span></div>
+      <div class="page-subtitle">Chỉ admin mới có quyền thêm sách vào hệ thống</div>
+    </div>
+    <div style="max-width:680px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📖 Thông tin sách</div></div>
+        <div class="card-body">
+          <div class="form-grid gap-16">
+            <div class="form-grid form-grid-2">
+              <div class="form-group">
+                <label>Tên sách *</label>
+                <input type="text" id="book-title" placeholder="Nhập tên sách"/>
+              </div>
+              <div class="form-group">
+                <label>Tác giả *</label>
+                <input type="text" id="book-author" placeholder="Tên tác giả"/>
+              </div>
+            </div>
+            <div class="form-grid form-grid-3">
+              <div class="form-group">
+                <label>ISBN</label>
+                <input type="text" id="book-isbn" placeholder="978-xxx-xxx"/>
+              </div>
+              <div class="form-group">
+                <label>Thể loại *</label>
+                <select id="book-category">
+                  <option value="Khoa học">Khoa học</option>
+                  <option value="Văn học">Văn học</option>
+                  <option value="Lịch sử">Lịch sử</option>
+                  <option value="Công nghệ">Công nghệ</option>
+                  <option value="Kinh tế">Kinh tế</option>
+                  <option value="Triết học">Triết học</option>
+                  <option value="Khác">Khác</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Số lượng *</label>
+                <input type="number" id="book-copies" placeholder="Số bản sao" min="1" value="1"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="addBook()">✅ Thêm sách lên Blockchain</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== BORROW ========== -->
+  <div id="page-borrow" class="page">
+    <div class="page-header">
+      <div class="page-title">📤 Mượn <span class="gold-accent">Sách</span></div>
+      <div class="page-subtitle">Chọn sách và thực hiện giao dịch mượn trên blockchain</div>
+    </div>
+    <div style="max-width:680px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 Thông tin mượn sách</div></div>
+        <div class="card-body">
+          <div class="form-grid gap-16">
+            <div class="form-group">
+              <label>Tên người mượn *</label>
+              <input type="text" id="borrow-name" placeholder="Nhập họ và tên"/>
+            </div>
+            <div class="form-grid form-grid-2">
+              <div class="form-group">
+                <label>Lọc theo thể loại</label>
+                <select id="borrow-category-filter" onchange="loadBooksForBorrow()">
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Chọn sách *</label>
+                <select id="borrow-book-select">
+                  <option value="">-- Chọn sách cần mượn --</option>
+                </select>
+                <div class="form-hint">📌 Thời hạn mượn: 14 ngày | Tối đa 3 cuốn/lần</div>
+              </div>
+            </div>
+            <div id="borrow-book-info" style="display:none" class="card" style="background:var(--bg)">
+              <div class="card-body" style="padding:14px">
+                <div id="borrow-book-detail"></div>
+              </div>
+            </div>
+            <button class="btn btn-teal" onclick="borrowBook()">📤 Xác nhận mượn sách</button>
+            <div class="form-hint" id="borrow-category-hint" style="margin-top:-8px">
+              Bạn có thể lọc theo thể loại trước khi chọn sách.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== RETURN ========== -->
+  <div id="page-return" class="page">
+    <div class="page-header">
+      <div class="page-title">📥 Trả <span class="gold-accent">Sách</span></div>
+      <div class="page-subtitle">Xem sách đang mượn và thực hiện trả</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 Sách đang được mượn</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadActiveRecords()">🔄 Làm mới</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div id="return-table"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== RECORDS ========== -->
+  <div id="page-records" class="page">
+    <div class="page-header flex items-center justify-between">
+      <div>
+        <div class="page-title">📋 Lịch sử <span class="gold-accent">Giao dịch</span></div>
+        <div class="page-subtitle">Toàn bộ giao dịch mượn/trả trên blockchain</div>
+      </div>
+      <div class="flex gap-8">
+        <select id="filter-status" onchange="filterRecords()" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius2);padding:7px 12px;color:var(--text);font-size:13px;outline:none">
+          <option value="all">Tất cả</option>
+          <option value="active">Đang mượn</option>
+          <option value="returned">Đã trả</option>
+          <option value="overdue">Quá hạn</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadRecords()">🔄 Làm mới</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding:0">
+        <div id="records-table"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== REGISTER ========== -->
+  <div id="page-register" class="page">
+    <div class="page-header">
+      <div class="page-title">👤 Đăng ký <span class="gold-accent">Thành viên</span></div>
+      <div class="page-subtitle">Đăng ký địa chỉ ví của bạn vào hệ thống thư viện</div>
+    </div>
+
+    <div style="max-width:540px">
+      <div id="member-status-card" class="card mb-16" style="display:none">
+        <div class="card-header"><div class="card-title">📊 Thông tin thành viên</div></div>
+        <div class="card-body" id="member-status-body"></div>
+      </div>
+
+      <div class="card" id="register-form-card">
+        <div class="card-header"><div class="card-title">📝 Thông tin đăng ký</div></div>
+        <div class="card-body">
+          <div class="form-grid gap-16">
+            <div class="form-group">
+              <label>Họ và tên *</label>
+              <input type="text" id="reg-name" placeholder="Nhập họ và tên đầy đủ"/>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="reg-email" placeholder="email@example.com"/>
+            </div>
+            <div class="form-group">
+              <label>Địa chỉ ví</label>
+              <input type="text" id="reg-addr" readonly style="opacity:.6"/>
+              <div class="form-hint">Địa chỉ ví MetaMask hiện tại của bạn</div>
+            </div>
+            <button class="btn btn-primary" onclick="registerMember()">✅ Đăng ký thành viên</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MEMBERS ========== -->
+  <div id="page-members" class="page">
+    <div class="page-header flex items-center justify-between">
+      <div>
+        <div class="page-title">👥 Quản lý <span class="gold-accent">Thành viên</span></div>
+        <div class="page-subtitle">Danh sách tất cả thành viên trong hệ thống</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadMembers()">🔄 Làm mới</button>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding:0">
+        <div id="members-table"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TX LOG ========== -->
+  <div id="page-tx-log" class="page">
+    <div class="page-header">
+      <div class="page-title">🔗 Transaction <span class="gold-accent">Log</span></div>
+      <div class="page-subtitle">Nhật ký giao dịch blockchain</div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📟 Console</div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('tx-console').innerHTML=''">🗑️ Xóa</button>
+      </div>
+      <div class="card-body">
+        <div id="tx-console" class="tx-log" style="min-height:400px;max-height:600px">
+          <div class="tx-line tx-info">» BlockLibrary v1.0 — Hệ thống thư viện Blockchain</div>
+          <div class="tx-line tx-info">» Kết nối MetaMask và nhập contract address để bắt đầu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOOK DETAIL MODAL -->
+<div class="modal-overlay" id="book-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-book-title">Chi tiết sách</div>
+      <button class="modal-close" onclick="closeModal('book-modal')">✕</button>
+    </div>
+    <div id="modal-book-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('book-modal')">Đóng</button>
+      <button class="btn btn-teal" id="modal-borrow-btn">📤 Mượn sách này</button>
+      <div id="modal-edit-btns" style="display:none">
+      <button class="btn btn-primary" id="modal-edit-btn">✏️ Chỉnh sửa</button>
+      <button class="btn btn-danger" id="modal-delete-btn" style="margin-left:10px" onclick="deleteBookFromModal()">🗑️ Xóa sách</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT BOOK MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Chỉnh sửa sách</div>
+      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+    </div>
+    <div class="form-grid gap-16">
+      <input type="hidden" id="edit-book-id"/>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Tên sách</label><input type="text" id="edit-title"/></div>
+        <div class="form-group"><label>Tác giả</label><input type="text" id="edit-author"/></div>
+      </div>
+      <div class="form-grid form-grid-3">
+        <div class="form-group"><label>ISBN</label><input type="text" id="edit-isbn"/></div>
+        <div class="form-group"><label>Thể loại</label>
+          <select id="edit-category">
+            <option>Khoa học</option><option>Văn học</option><option>Lịch sử</option>
+            <option>Công nghệ</option><option>Kinh tế</option><option>Triết học</option><option>Khác</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Tổng số lượng</label><input type="number" id="edit-copies" min="1"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">Hủy</button>
+      <button class="btn btn-primary" onclick="updateBook()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+
+
+</body>
+</html>

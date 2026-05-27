@@ -140,5 +140,13 @@ blockchain-library/
 ├── package.json
 └── README.md
 ```
+---
 
+# 📞 13. Thông tin liên hệ
+
+- 👤 Tên: Đặng Lê Hoàng Anh
+- 📧 Email: danglehoanganh0223@gmail.com
+- 🌐 GitHub: https://github.com/danglehoanganh
+
+---
 

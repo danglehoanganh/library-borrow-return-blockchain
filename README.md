@@ -194,23 +194,25 @@ History Updated
 
 # 📸 System Screenshots
 
-## System Architecture
+</h3>System Architectu
 
-![Architecture](Structureofblocksinblockchain.png)
-
----
-
-## Main Dashboard
-
-![Dashboard](Screenshot 2026-06-04 075325.png)
+<p align="center">
+  <img src="Structureofblocksinblockchain.png" alt="System Architecture" width="800">
+</p>
 
 ---
 
-## Blockchain Workflow
+<h3>Main Dashboard</h3>
 
-![Workflow]()
+<p align="center">
+  <img src="Screenshot%202026-06-04%20075325.png" alt="Main Dashboard" width="800">
+</p>
 
 ---
+<h3>Blockchain Workflow</h3>
+<p align="center">
+  <img src="Gemini_Generated_Image_1yxfox1yxfox1yxf.png" width="800">
+</p>
 
 
 

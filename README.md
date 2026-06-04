@@ -196,19 +196,19 @@ History Updated
 
 ## System Architecture
 
-![Architecture](Structureofblocksinblockchain)
+![Architecture](Structureofblocksinblockchain.png)
 
 ---
 
 ## Main Dashboard
 
-![Dashboard](Screenshot 2026-06-04 075325)
+![Dashboard](Screenshot 2026-06-04 075325.png)
 
 ---
 
 ## Blockchain Workflow
 
-![Workflow](Gemini_Generated_Image_1yxfox1yxfox1yxf)
+![Workflow]()
 
 ---
 

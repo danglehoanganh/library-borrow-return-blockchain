@@ -256,15 +256,7 @@ blockchain-library/
 
 ---
 
-# 👨‍🎓 Student Information
 
-**Name:** Dang Le Hoang Anh
-
-**Faculty:** Information Technology
-
-**University:** Dai Nam University
-
-**Course:** Blockchain Technology
 
 ---
 
@@ -275,3 +267,40 @@ blockchain-library/
 Educational Project for Learning Ethereum Smart Contract Development
 
 </div>
+
+---
+
+# 🎨 Project Poster
+
+<p align="center">
+  <img src="poster.png" 
+       alt="Blockchain Library System Poster"
+       width="100%">
+</p>
+
+<p align="center">
+  <b>Building a Blockchain-Based Library Borrow/Return System Using Ganache</b>
+</p>
+
+---
+
+## 📌 Poster Highlights
+
+- 🔗 Blockchain-based Library Management
+- 📚 Borrow / Return Book Transactions
+- ⛓️ Ethereum Smart Contract (Solidity)
+- 🏗️ Truffle Deployment Framework
+- 💰 Ganache Local Blockchain Network
+- 🌐 Web3.js Blockchain Communication
+- 📊 Real-time Transaction Monitoring
+- 🔒 Immutable Transaction History
+
+  # 👨‍🎓 Student Information
+
+**Name:** Dang Le Hoang Anh
+
+**Faculty:** Information Technology
+
+**University:** Dai Nam University
+
+**Course:** Blockchain Technology

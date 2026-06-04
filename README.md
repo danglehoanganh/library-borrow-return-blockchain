@@ -196,25 +196,23 @@ History Updated
 
 ## System Architecture
 
-![Architecture](Gemini_Generated_Image_1yxfox1yxfox1yxf.png)
+![Architecture](Structureofblocksinblockchain)
 
 ---
 
 ## Main Dashboard
 
-![Dashboard](Screenshot%202026-05-22%20221706.png)
+![Dashboard](Screenshot 2026-06-04 075325)
 
 ---
 
 ## Blockchain Workflow
 
-![Workflow](Gemini_Generated_Image_n3v9fln3v9fln3v9.png)
+![Workflow](Gemini_Generated_Image_1yxfox1yxfox1yxf)
 
 ---
 
-## Ganache Accounts
 
-![Ganache](Screenshot%202026-05-22%20225022.png)
 
 ---
 
